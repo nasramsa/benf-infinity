@@ -35,4 +35,18 @@ return [
         ],
     ],
 
+    // config/services.php — ajouter dans le tableau existant
+    'stripe' => [
+        'key'            => env('STRIPE_PUBLIC_KEY'),
+        'secret'         => env('STRIPE_SECRET_KEY'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
+    // config/services.php — ajouter
+    'paypal' => [
+        'client_id'     => env('PAYPAL_CLIENT_ID'),
+        'client_secret' => env('PAYPAL_CLIENT_SECRET'),
+        'mode'          => env('PAYPAL_MODE', 'sandbox'),
+    ],
+
 ];
