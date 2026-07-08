@@ -21,10 +21,9 @@ class LigneCommandeResource extends JsonResource
                 'couleur' => $this->variante->couleur,
                 // Nom du produit parent pour l'affichage dans le récap
                 'produit_nom' => $this->variante->produit?->nom,
-                'image_url'   => $this->variante->produit
-                    ?->medias
-                    ?->firstWhere('principale', true)
-                    ?->url,
+                'image_url'   => ($media = $this->variante->produit?->medias?->firstWhere('principale', true))
+                    ? asset('storage/' . $media->url)
+                    : null,
             ]),
         ];
     }

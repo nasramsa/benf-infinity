@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Media extends Model
 {
+    protected $table = 'medias';
+
     protected $fillable = [
         'produit_id', 'url', 'type', 'principale', 'ordre'
     ];

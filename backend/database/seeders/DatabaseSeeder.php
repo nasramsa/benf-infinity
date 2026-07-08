@@ -7,11 +7,21 @@ use App\Models\Categorie;
 use App\Models\Produit;
 use App\Models\Variante;
 use App\Models\Stock;
+use App\Models\Media;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        Schema::disableForeignKeyConstraints();
+        Categorie::truncate();
+        Produit::truncate();
+        Variante::truncate();
+        Stock::truncate();
+        Media::truncate();
+        Schema::enableForeignKeyConstraints();
+
         // Catégorie T-shirts
         $cat = Categorie::create([
             'nom' => 'T-Shirts',
@@ -27,6 +37,23 @@ class DatabaseSeeder extends Seeder
             'description' => 'Le t-shirt signature Benf-Infinity, coupe moderne, coton bio 200g.',
             'prix_base' => 49.99,
             'actif' => true,
+        ]);
+
+        // Enregistrer les médias
+        Media::create([
+            'produit_id' => $produit->id,
+            'url' => 'produits/tshirt-noir.jpg',
+            'type' => 'image',
+            'principale' => true,
+            'ordre' => 0,
+        ]);
+
+        Media::create([
+            'produit_id' => $produit->id,
+            'url' => 'produits/tshirt-blanc.jpg',
+            'type' => 'image',
+            'principale' => false,
+            'ordre' => 1,
         ]);
 
         // Variantes : tailles × couleurs

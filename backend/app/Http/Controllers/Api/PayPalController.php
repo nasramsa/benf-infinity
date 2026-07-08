@@ -106,6 +106,7 @@ class PayPalController extends Controller
 
         $commande = $paiement->commande;
         $commande->update(['statut' => 'confirmee']);
+        $commande->load(['client', 'lignes.variante.produit']);
 
         Mail::to($commande->client->email)
             ->send(new CommandeConfirmee($commande));

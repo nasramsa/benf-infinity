@@ -1,7 +1,7 @@
 // components/PaiementForm.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import {
   Elements,
@@ -42,15 +42,17 @@ function StripeForm({ commandeId }: { commandeId: number }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <PaymentElement />
-      {erreur && <p className="text-red-500 text-sm">{erreur}</p>}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="bg-background border border-border p-4">
+        <PaymentElement />
+      </div>
+      {erreur && <p className="text-red-500 text-xs font-medium font-sans">{erreur}</p>}
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-black text-white py-3 tracking-widest text-sm uppercase hover:bg-gray-800 disabled:opacity-50"
+        className="w-full bg-primary text-background py-4 tracking-[0.3em] text-[10px] uppercase font-bold hover:bg-accent transition-colors duration-300 disabled:opacity-50"
       >
-        {loading ? 'Traitement...' : 'Payer par carte'}
+        {loading ? 'Traitement en cours...' : 'Confirmer et Payer par carte'}
       </button>
     </form>
   );
@@ -63,58 +65,99 @@ export default function PaiementForm({ commandeId, montant }: {
 }) {
   const [clientSecret, setClientSecret] = useState('');
   const [methode, setMethode] = useState<'stripe' | 'paypal'>('stripe');
+  const [loadingStripe, setLoadingStripe] = useState(false);
 
   // Initialiser Stripe : récupère le client_secret
   const initStripe = async () => {
-    const res = await api.post('/paiements/stripe/intent', { commande_id: commandeId });
-    setClientSecret(res.data.client_secret);
-    setMethode('stripe');
+    setLoadingStripe(true);
+    try {
+      const res = await api.post('/paiements/stripe/intent', { commande_id: commandeId });
+      setClientSecret(res.data.client_secret);
+    } catch (e) {
+      console.error('Error initializing Stripe intent', e);
+    } finally {
+      setLoadingStripe(false);
+    }
   };
 
+  // Charger Stripe automatiquement si sélectionné et non initialisé
+  useEffect(() => {
+    if (methode === 'stripe' && !clientSecret) {
+      initStripe();
+    }
+  }, [methode, clientSecret]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 bg-card border border-border p-6 md:p-8">
+      <div>
+        <h3 className="text-xs tracking-[0.2em] uppercase text-accent font-semibold mb-2">Méthode de paiement</h3>
+        <p className="text-[10px] text-accent font-light">Veuillez sélectionner votre mode de règlement sécurisé.</p>
+      </div>
+
       {/* Sélecteur de méthode */}
-      <div className="flex gap-3">
+      <div className="flex gap-4">
         <button
-          onClick={initStripe}
-          className={`flex-1 border py-2 text-sm ${methode === 'stripe' ? 'border-black' : 'border-gray-200'}`}
+          onClick={() => setMethode('stripe')}
+          className={`flex-1 border py-3 text-[10px] tracking-widest uppercase transition-all duration-300 ${
+            methode === 'stripe'
+              ? 'border-primary bg-primary text-background font-bold'
+              : 'border-border bg-card text-foreground hover:border-accent'
+          }`}
         >
-          Carte / Apple Pay / Google Pay
+          Carte bancaire
         </button>
         <button
           onClick={() => setMethode('paypal')}
-          className={`flex-1 border py-2 text-sm ${methode === 'paypal' ? 'border-black' : 'border-gray-200'}`}
+          className={`flex-1 border py-3 text-[10px] tracking-widest uppercase transition-all duration-300 ${
+            methode === 'paypal'
+              ? 'border-primary bg-primary text-background font-bold'
+              : 'border-border bg-card text-foreground hover:border-accent'
+          }`}
         >
-          PayPal
+          PayPal / GPay
         </button>
       </div>
 
       {/* Stripe Elements */}
-      {methode === 'stripe' && clientSecret && (
-        <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <StripeForm commandeId={commandeId} />
-        </Elements>
+      {methode === 'stripe' && (
+        <div className="space-y-4">
+          {loadingStripe ? (
+            <div className="text-center py-8">
+              <span className="text-xs text-accent uppercase tracking-widest animate-pulse">Initialisation de la passerelle Stripe...</span>
+            </div>
+          ) : clientSecret ? (
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <StripeForm commandeId={commandeId} />
+            </Elements>
+          ) : (
+            <div className="text-center py-8 text-red-500 text-xs">
+              Impossible d'initialiser le paiement Stripe. Veuillez vérifier votre connexion.
+            </div>
+          )}
+        </div>
       )}
 
       {/* PayPal Buttons */}
       {methode === 'paypal' && (
-        <PayPalScriptProvider options={{
-          clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
-          currency: 'CAD',
-        }}>
-          <PayPalButtons
-            createOrder={async () => {
-              const res = await api.post('/paiements/paypal/create', { commande_id: commandeId });
-              return res.data.paypal_order_id;
-            }}
-            onApprove={async (data) => {
-              await api.post(`/paiements/paypal/capture/${data.orderID}`);
-              window.location.href = `/commandes/${commandeId}/confirmation`;
-            }}
-            onError={(err) => console.error('PayPal error', err)}
-            style={{ layout: 'vertical', color: 'black', shape: 'rect' }}
-          />
-        </PayPalScriptProvider>
+        <div className="bg-background border border-border p-4">
+          <PayPalScriptProvider options={{
+            clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
+            currency: 'CAD',
+          }}>
+            <PayPalButtons
+              createOrder={async () => {
+                const res = await api.post('/paiements/paypal/create', { commande_id: commandeId });
+                return res.data.paypal_order_id;
+              }}
+              onApprove={async (data) => {
+                await api.post(`/paiements/paypal/capture/${data.orderID}`);
+                window.location.href = `/commandes/${commandeId}/confirmation`;
+              }}
+              onError={(err) => console.error('PayPal error', err)}
+              style={{ layout: 'vertical', color: 'black', shape: 'rect' }}
+            />
+          </PayPalScriptProvider>
+        </div>
       )}
     </div>
   );

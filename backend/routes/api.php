@@ -36,6 +36,24 @@ Route::get('/produits/{produitId}/avis',   [AvisController::class, 'index']);
 // -------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
 
+    // Adresses
+    Route::post('/adresses', function (\Illuminate\Http\Request $request) {
+        $data = $request->validate([
+            'rue'         => 'required|string|max:255',
+            'ville'        => 'required|string|max:100',
+            'province'    => 'required|string|max:100',
+            'code_postal' => 'required|string|max:20',
+            'pays'        => 'required|string|max:100',
+        ]);
+        
+        // Par défaut, si c'est la première adresse, on la met par défaut
+        $count = $request->user()->adresses()->count();
+        $data['par_defaut'] = $count === 0;
+
+        $adresse = $request->user()->adresses()->create($data);
+        return response()->json($adresse, 201);
+    });
+
     // Commandes
     Route::post('/commandes',           [CommandeController::class, 'store']);
     Route::get('/commandes/{id}',       [CommandeController::class, 'show']);

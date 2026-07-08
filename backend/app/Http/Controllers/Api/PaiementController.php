@@ -38,9 +38,6 @@ class PaiementController extends Controller
         $intent = PaymentIntent::create([
             'amount'   => $montantCentimes,
             'currency' => 'cad',
-            // Active automatiquement Apple Pay et Google Pay
-            // si le navigateur/appareil les supporte
-            'payment_method_types' => ['card'],
             'automatic_payment_methods' => ['enabled' => true],
             'metadata' => [
                 'commande_id' => $commande->id,
@@ -103,6 +100,7 @@ class PaiementController extends Controller
 
         $commande = $paiement->commande;
         $commande->update(['statut' => 'confirmee']);
+        $commande->load(['client', 'lignes.variante.produit']);
 
         // Envoyer l'email de confirmation au client
         Mail::to($commande->client->email)
