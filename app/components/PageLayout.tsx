@@ -39,6 +39,7 @@ type LayoutProps = {
 
 export function PageLayout({children, layout}: LayoutProps) {
   const {headerMenu, footerMenu} = layout || {};
+  const siteTitle = 'Benf Infinity';
   return (
     <>
       <div className="flex flex-col min-h-screen">
@@ -47,8 +48,8 @@ export function PageLayout({children, layout}: LayoutProps) {
             Skip to content
           </a>
         </div>
-        {headerMenu && layout?.shop.name && (
-          <Header title={layout.shop.name} menu={headerMenu} />
+        {headerMenu && (
+          <Header title={siteTitle} menu={headerMenu} />
         )}
         <main role="main" id="mainContent" className="flex-grow">
           {children}
