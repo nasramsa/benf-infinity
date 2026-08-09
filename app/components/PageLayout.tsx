@@ -76,7 +76,6 @@ function Header({title, menu}: {title: string; menu?: EnhancedMenu}) {
 
   const addToCartFetchers = useCartFetchers(CartForm.ACTIONS.LinesAdd);
 
-  // toggle cart drawer when adding to cart
   useEffect(() => {
     if (isCartOpen || !addToCartFetchers.length) return;
     openCart();
@@ -109,7 +108,7 @@ function CartDrawer({isOpen, onClose}: {isOpen: boolean; onClose: () => void}) {
   if (!rootData) return null;
 
   return (
-    <Drawer open={isOpen} onClose={onClose} heading="Cart" openFrom="right">
+    <Drawer open={isOpen} onClose={onClose} heading="Panier" openFrom="right">
       <div className="grid">
         <Suspense fallback={<CartLoading />}>
           <Await resolve={rootData?.cart}>
@@ -147,8 +146,7 @@ function MenuMobileNav({
   onClose: () => void;
 }) {
   return (
-    <nav className="grid gap-4 p-6 sm:gap-6 sm:px-12 sm:py-8">
-      {/* Top level menu items */}
+    <nav className="grid gap-6 p-8">
       {(menu?.items || []).map((item) => (
         <span key={item.id} className="block">
           <Link
@@ -156,12 +154,14 @@ function MenuMobileNav({
             target={item.target}
             onClick={onClose}
             className={({isActive}) =>
-              isActive ? 'pb-1 border-b -mb-px' : 'pb-1'
+              `font-body text-xs tracking-[0.2em] uppercase ${
+                isActive
+                  ? 'border-b border-black pb-1'
+                  : 'pb-1 hover:opacity-60 transition-opacity'
+              }`
             }
           >
-            <Text as="span" size="copy">
-              {item.title}
-            </Text>
+            {item.title}
           </Link>
         </span>
       ))}
@@ -180,66 +180,41 @@ function MobileHeader({
   openCart: () => void;
   openMenu: () => void;
 }) {
-  // useHeaderStyleFix(containerStyle, setContainerStyle, isHome);
-
   const params = useParams();
 
   return (
     <header
       role="banner"
-      className={`${
-        isHome
-          ? 'bg-primary/80 dark:bg-contrast/60 text-contrast dark:text-primary shadow-darkHeader'
-          : 'bg-contrast/80 text-primary'
-      } flex lg:hidden items-center h-nav sticky backdrop-blur-lg z-40 top-0 justify-between w-full leading-none gap-4 px-4 md:px-8`}
+      className="bg-[#F9F7F4] border-b border-[#E8E0D5] flex lg:hidden items-center h-nav sticky backdrop-blur-lg z-40 top-0 justify-between w-full leading-none gap-4 px-4 md:px-8"
     >
-      <div className="flex items-center justify-start w-full gap-4">
+      {/* Gauche — logo */}
+      <Link
+        className="flex items-center justify-start flex-grow gap-3"
+        to="/"
+      >
+        <img
+          src="/images/logo.jpg"
+          alt="Benf-Infinity"
+          className="h-8 w-auto object-contain mix-blend-multiply"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+        <span className="font-serif text-lg tracking-[0.2em] uppercase font-light text-[#0A0A0A]">
+          {title}
+        </span>
+      </Link>
+
+      {/* Droite — compte + panier + menu burger */}
+      <div className="flex items-center justify-end gap-3 flex-none">
+        <AccountLink className="relative flex items-center justify-center w-8 h-8" />
+        <CartCount isHome={isHome} openCart={openCart} />
         <button
           onClick={openMenu}
           className="relative flex items-center justify-center w-8 h-8"
         >
           <IconMenu />
         </button>
-        <Form
-          method="get"
-          action={params.locale ? `/${params.locale}/search` : '/search'}
-          className="items-center gap-2 sm:flex"
-        >
-          <button
-            type="submit"
-            className="relative flex items-center justify-center w-8 h-8"
-          >
-            <IconSearch />
-          </button>
-          <Input
-            className={
-              isHome
-                ? 'focus:border-contrast/20 dark:focus:border-primary/20'
-                : 'focus:border-primary/20'
-            }
-            type="search"
-            variant="minisearch"
-            placeholder="Search"
-            name="q"
-          />
-        </Form>
-      </div>
-
-      <Link
-        className="flex items-center self-stretch leading-[3rem] md:leading-[4rem] justify-center flex-grow w-full h-full"
-        to="/"
-      >
-        <Heading
-          className="font-bold text-center leading-none"
-          as={isHome ? 'h1' : 'h2'}
-        >
-          {title}
-        </Heading>
-      </Link>
-
-      <div className="flex items-center justify-end w-full gap-4">
-        <AccountLink className="relative flex items-center justify-center w-8 h-8" />
-        <CartCount isHome={isHome} openCart={openCart} />
       </div>
     </header>
   );
@@ -258,63 +233,79 @@ function DesktopHeader({
 }) {
   const params = useParams();
   const {y} = useWindowScroll();
+
   return (
     <header
       role="banner"
-      className={`${
-        isHome
-          ? 'bg-primary/80 dark:bg-contrast/60 text-contrast dark:text-primary shadow-darkHeader'
-          : 'bg-contrast/80 text-primary'
-      } ${
-        !isHome && y > 50 && ' shadow-lightHeader'
-      } hidden h-nav lg:flex items-center sticky transition duration-300 backdrop-blur-lg z-40 top-0 justify-between w-full leading-none gap-8 px-12 py-8`}
+      className={`
+        bg-[#F9F7F4] border-b border-[#E8E0D5]
+        hidden h-nav lg:flex items-center sticky
+        transition-all duration-300 backdrop-blur-lg z-40 top-0
+        justify-between w-full leading-none
+        px-12 py-6
+        ${!isHome && y > 50 ? 'shadow-sm' : ''}
+      `}
     >
-      <div className="flex gap-12">
-        <Link className="font-bold" to="/" prefetch="intent">
+      {/* Gauche — logo */}
+      <Link
+        to="/"
+        prefetch="intent"
+        className="flex items-center justify-start w-1/3 transition-transform hover:scale-105 duration-300 gap-4"
+      >
+        <img
+          src="/images/logo.jpg"
+          alt="Benf-Infinity"
+          className="h-10 w-auto object-contain mix-blend-multiply"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+        <span className="font-serif text-2xl tracking-[0.25em] uppercase font-light text-[#0A0A0A]">
           {title}
-        </Link>
-        <nav className="flex gap-8">
-          {/* Top level menu items */}
-          {(menu?.items || []).map((item) => (
-            <Link
-              key={item.id}
-              to={item.to}
-              target={item.target}
-              prefetch="intent"
-              className={({isActive}) =>
-                isActive ? 'pb-1 border-b -mb-px' : 'pb-1'
-              }
-            >
-              {item.title}
-            </Link>
-          ))}
-        </nav>
-      </div>
-      <div className="flex items-center gap-1">
+        </span>
+      </Link>
+
+      {/* Centre — navigation */}
+      <nav className="flex justify-center gap-10 flex-1">
+        {(menu?.items || []).slice(0, 3).map((item) => (
+          <Link
+            key={item.id}
+            to={item.to}
+            target={item.target}
+            prefetch="intent"
+            className={({isActive}) =>
+              `text-xs tracking-[0.15em] uppercase font-body transition-opacity hover:opacity-60 ${
+                isActive ? 'border-b border-black pb-1' : ''
+              }`
+            }
+          >
+            {item.title}
+          </Link>
+        ))}
+      </nav>
+
+      {/* Droite — recherche + compte + panier */}
+      <div className="flex items-center justify-end gap-4 w-1/3">
         <Form
           method="get"
           action={params.locale ? `/${params.locale}/search` : '/search'}
           className="flex items-center gap-2"
         >
           <Input
-            className={
-              isHome
-                ? 'focus:border-contrast/20 dark:focus:border-primary/20'
-                : 'focus:border-primary/20'
-            }
             type="search"
             variant="minisearch"
-            placeholder="Search"
+            placeholder="Rechercher"
             name="q"
+            className="focus:border-black/20 text-xs"
           />
           <button
             type="submit"
-            className="relative flex items-center justify-center w-8 h-8 focus:ring-primary/5"
+            className="relative flex items-center justify-center w-8 h-8 hover:opacity-60 transition-opacity"
           >
             <IconSearch />
           </button>
         </Form>
-        <AccountLink className="relative flex items-center justify-center w-8 h-8 focus:ring-primary/5" />
+        <AccountLink className="relative flex items-center justify-center w-8 h-8 hover:opacity-60 transition-opacity" />
         <CartCount isHome={isHome} openCart={openCart} />
       </div>
     </header>
@@ -347,11 +338,11 @@ function CartCount({
   if (!rootData) return null;
 
   return (
-    <Suspense fallback={<Badge count={0} dark={isHome} openCart={openCart} />}>
+    <Suspense fallback={<Badge count={0} dark={false} openCart={openCart} />}>
       <Await resolve={rootData?.cart}>
         {(cart) => (
           <Badge
-            dark={isHome}
+            dark={false}
             openCart={openCart}
             count={cart?.totalQuantity || 0}
           />
@@ -376,31 +367,27 @@ function Badge({
     () => (
       <>
         <IconBag />
-        <div
-          className={`${
-            dark
-              ? 'text-primary bg-contrast dark:text-contrast dark:bg-primary'
-              : 'text-contrast bg-primary'
-          } absolute bottom-1 right-1 text-[0.625rem] font-medium subpixel-antialiased h-3 min-w-[0.75rem] flex items-center justify-center leading-none text-center rounded-full w-auto px-[0.125rem] pb-px`}
-        >
-          <span>{count || 0}</span>
-        </div>
+        {count > 0 && (
+          <div className="absolute bottom-1 right-1 bg-black text-white text-[0.55rem] font-medium h-3 min-w-[0.75rem] flex items-center justify-center rounded-full px-[0.125rem]">
+            <span>{count}</span>
+          </div>
+        )}
       </>
     ),
-    [count, dark],
+    [count],
   );
 
   return isHydrated ? (
     <button
       onClick={openCart}
-      className="relative flex items-center justify-center w-8 h-8 focus:ring-primary/5"
+      className="relative flex items-center justify-center w-8 h-8 hover:opacity-60 transition-opacity"
     >
       {BadgeCounter}
     </button>
   ) : (
     <Link
       to="/cart"
-      className="relative flex items-center justify-center w-8 h-8 focus:ring-primary/5"
+      className="relative flex items-center justify-center w-8 h-8 hover:opacity-60 transition-opacity"
     >
       {BadgeCounter}
     </Link>
@@ -409,80 +396,129 @@ function Badge({
 
 function Footer({menu}: {menu?: EnhancedMenu}) {
   const isHome = useIsHomePath();
-  const itemsCount = menu
-    ? menu?.items?.length + 1 > 4
-      ? 4
-      : menu?.items?.length + 1
-    : [];
 
   return (
-    <Section
-      divider={isHome ? 'none' : 'top'}
-      as="footer"
-      role="contentinfo"
-      className={`grid min-h-[25rem] items-start grid-flow-row w-full gap-6 py-8 px-6 md:px-8 lg:px-12 md:gap-8 lg:gap-12 grid-cols-1 md:grid-cols-2 lg:grid-cols-${itemsCount}
-        bg-primary dark:bg-contrast dark:text-primary text-contrast overflow-hidden`}
-    >
-      <FooterMenu menu={menu} />
-      <CountrySelector />
-      <div
-        className={`self-end pt-8 opacity-50 md:col-span-2 lg:col-span-${itemsCount}`}
-      >
-        &copy; {new Date().getFullYear()} / Shopify, Inc. Hydrogen is an MIT
-        Licensed Open Source project.
+    <footer className="bg-[#0A0A0A] text-[#F9F7F4] pt-16 pb-8 px-6 md:px-12">
+      <div className="max-w-7xl mx-auto">
+
+        {/* Logo + tagline */}
+        <div className="text-center mb-16">
+          <img
+            src="/images/logo.jpg"
+            alt="Benf-Infinity"
+            className="h-16 w-auto object-contain mx-auto mb-4 opacity-90 invert"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+          <p className="text-xs tracking-[0.3em] uppercase text-white/40">
+            Mode Premium — Canada
+          </p>
+        </div>
+
+        {/* Liens footer */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+          <FooterMenu menu={menu} />
+          <div>
+            <h3 className="text-xs tracking-[0.2em] uppercase mb-6 text-white/60">
+              Service client
+            </h3>
+            <nav className="grid gap-3">
+              <Link
+                to="/policies/shipping-policy"
+                className="text-xs text-white/50 hover:text-white transition-colors tracking-wide"
+              >
+                Livraison
+              </Link>
+              <Link
+                to="/policies/refund-policy"
+                className="text-xs text-white/50 hover:text-white transition-colors tracking-wide"
+              >
+                Retours & échanges
+              </Link>
+              <Link
+                to="/policies/privacy-policy"
+                className="text-xs text-white/50 hover:text-white transition-colors tracking-wide"
+              >
+                Confidentialité
+              </Link>
+            </nav>
+          </div>
+          <div>
+            <h3 className="text-xs tracking-[0.2em] uppercase mb-6 text-white/60">
+              Contact
+            </h3>
+            <p className="text-xs text-white/50 tracking-wide leading-relaxed">
+              benfinfinity@gmail.com
+            </p>
+            <div className="mt-6">
+              <CountrySelector />
+            </div>
+          </div>
+        </div>
+
+        {/* Bas de footer */}
+        <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-white/30 tracking-wide">
+            © {new Date().getFullYear()} Benf-Infinity. Tous droits réservés.
+          </p>
+          <p className="text-xs text-white/20 tracking-wide">
+            Fait avec soin au Canada
+          </p>
+        </div>
+
       </div>
-    </Section>
+    </footer>
   );
 }
 
 function FooterLink({item}: {item: ChildEnhancedMenuItem}) {
   if (item.to.startsWith('http')) {
     return (
-      <a href={item.to} target={item.target} rel="noopener noreferrer">
+      
+        <a href={item.to} target={item.target} rel="noopener noreferrer" className="text-xs text-white/50 hover:text-white transition-colors tracking-wide">
         {item.title}
       </a>
     );
   }
 
   return (
-    <Link to={item.to} target={item.target} prefetch="intent">
+    <Link
+      to={item.to}
+      target={item.target}
+      prefetch="intent"
+      className="text-xs text-white/50 hover:text-white transition-colors tracking-wide"
+    >
       {item.title}
     </Link>
   );
 }
 
 function FooterMenu({menu}: {menu?: EnhancedMenu}) {
-  const styles = {
-    section: 'grid gap-4',
-    nav: 'grid gap-2 pb-6',
-  };
-
   return (
     <>
       {(menu?.items || []).map((item) => (
-        <section key={item.id} className={styles.section}>
+        <section key={item.id} className="grid gap-4">
           <Disclosure>
             {({open}) => (
               <>
                 <Disclosure.Button className="text-left md:cursor-default">
-                  <Heading className="flex justify-between" size="lead" as="h3">
+                  <h3 className="text-xs tracking-[0.2em] uppercase text-white/60 flex justify-between items-center">
                     {item.title}
                     {item?.items?.length > 0 && (
                       <span className="md:hidden">
                         <IconCaret direction={open ? 'up' : 'down'} />
                       </span>
                     )}
-                  </Heading>
+                  </h3>
                 </Disclosure.Button>
                 {item?.items?.length > 0 ? (
                   <div
                     className={`${
-                      open ? `max-h-48 h-fit` : `max-h-0 md:max-h-fit`
+                      open ? 'max-h-48 h-fit' : 'max-h-0 md:max-h-fit'
                     } overflow-hidden transition-all duration-300`}
                   >
-                    <Suspense data-comment="This suspense fixes a hydration bug in Disclosure.Panel with static prop">
+                    <Suspense>
                       <Disclosure.Panel static>
-                        <nav className={styles.nav}>
+                        <nav className="grid gap-3">
                           {item.items.map((subItem: ChildEnhancedMenuItem) => (
                             <FooterLink key={subItem.id} item={subItem} />
                           ))}
