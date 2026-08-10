@@ -1,13 +1,12 @@
 {
-  "name": "demo-store",
+  "name": "benf-infinity",
   "private": true,
   "sideEffects": false,
   "version": "2.1.6",
   "type": "module",
   "scripts": {
   "dev": "shopify hydrogen dev --codegen",
-  "build": "shopify hydrogen build --codegen",
-  "postbuild": "node -e \"const fs=require('fs');fs.cpSync('dist','build',{recursive:true})\"",
+  "build": "shopify hydrogen build --codegen --output-dir build",
   "preview": "npm run build && shopify hydrogen preview",
   "e2e": "npx playwright test",
   "e2e:ui": "npx playwright test --ui",
