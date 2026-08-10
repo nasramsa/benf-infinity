@@ -7,7 +7,7 @@
   "scripts": {
   "dev": "shopify hydrogen dev --codegen",
   "build": "shopify hydrogen build --codegen",
-  "postbuild": "cp -r dist build",
+  "postbuild": "node -e \"const fs=require('fs');fs.cpSync('dist','build',{recursive:true})\"",
   "preview": "npm run build && shopify hydrogen preview",
   "e2e": "npx playwright test",
   "e2e:ui": "npx playwright test --ui",
