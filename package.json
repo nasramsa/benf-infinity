@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
   "dev": "shopify hydrogen dev --codegen",
-  "build": "shopify hydrogen build --codegen --output-dir build",
+  "build": "shopify hydrogen build --codegen",
   "preview": "npm run build && shopify hydrogen preview",
   "e2e": "npx playwright test",
   "e2e:ui": "npx playwright test --ui",
